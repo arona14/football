@@ -43,7 +43,7 @@ def create_team(team: TeamCreate, session: Session = Depends(get_session)):
             status_code=400,
             detail="Team already exists"
         )
-    db_team = Team.from_orm(team)
+    db_team = Team.model_validate(team)
     session.add(db_team)
     session.commit()
     session.refresh(db_team)
@@ -51,16 +51,20 @@ def create_team(team: TeamCreate, session: Session = Depends(get_session)):
 
 
 @team_router.put("/teams/{team_id}", response_model=TeamRead)
-def update_team(team_id: int, team: TeamUpdate, session: Session = Depends(get_session)):
+def update_team(team_id: int, team_update: TeamUpdate, session: Session = Depends(get_session)):
     """
     Update a team by ID.
     """
     db_team = session.get(Team, team_id)
     if not db_team:
         raise HTTPException(status_code=404, detail="Team not found")
-    team_data = team.dict(exclude_unset=True)
+    
+    # Update only the fields that are provided in the update request
+    team_data = team_update.model_dump(exclude_unset=True)
     for key, value in team_data.items():
         setattr(db_team, key, value)
+    
+    session.add(db_team)
     session.commit()
     session.refresh(db_team)
     return db_team

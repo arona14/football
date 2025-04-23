@@ -4,12 +4,6 @@ from football.teams.schemas import TeamRead
 
 
 class PlayerBase(SQLModel):
-    firt_name: str
-    last_name: str
-    age: int
-    nationality: str
-    position: str
-    country_id: int
     height: Optional[int] = None
     weight: Optional[int] = None
     foot: Optional[str] = None
@@ -19,13 +13,27 @@ class PlayerBase(SQLModel):
     market_value: Optional[str] = None
     team_id: Optional[int] = None
 
+
 class PlayerCreate(PlayerBase, table=False):
-    pass
+    first_name: str
+    last_name: str
+    age: int
+    nationality: str
+    position: str
 
 
 class PlayerRead(PlayerBase, table=False):
     id: Optional[int] = Field(default=None, primary_key=True)
+    first_name: str
+    last_name: str
+    age: int
+    nationality: str
+    position: str
     team: Optional["TeamRead"] = None
 
 class PlayerUpdate(SQLModel, table=False):
-    pass
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    age: Optional[int] = None
+    nationality: Optional[str] = None
+    position: Optional[str] = None

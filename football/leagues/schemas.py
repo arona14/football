@@ -4,7 +4,6 @@ from football.teams.schemas import TeamRead
 
 
 class LeagueBase(SQLModel):
-    name: str
     logo: Optional[str] = None
     founded: Optional[str] = None
     type: Optional[str] = None
@@ -15,13 +14,14 @@ class LeagueBase(SQLModel):
 
 
 class LeagueCreate(LeagueBase, table=False):
-    pass
+    name: str
    
 
 class LeagueRead(LeagueBase, table=False):
     id: Optional[int] = Field(default=None, primary_key=True)
+    name: str
     teams: Optional[list["TeamRead"]] = None
 
 
 class LeagueUpdate(LeagueBase, table=False):
-    pass
+    name: Optional[str] = None

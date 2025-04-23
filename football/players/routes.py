@@ -35,16 +35,16 @@ def create_player(player: PlayerCreate, session: Session = Depends(get_session))
     Create a new player.
     """
     existing_player = session.exec(
-        select(Player).where(Player.first_name == player.last_name and Player.last_name == player.last_name
+        select(Player).where(Player.first_name == player.first_name and Player.last_name == player.last_name
                              and Player.nationality == player.nationality)
     ).first()
-    
+    print("existing player:", existing_player)
     if existing_player:
         raise HTTPException(
             status_code=400,
             detail="Player already exists"
         )
-    db_player = Player.from_orm(player)
+    db_player = Player.model_validate(player)
     session.add(db_player)
     session.commit()
     session.refresh(db_player)
@@ -52,16 +52,20 @@ def create_player(player: PlayerCreate, session: Session = Depends(get_session))
 
 
 @player_router.put("/players/{player_id}", response_model=PlayerRead)
-def update_player(player_id: int, player: PlayerUpdate, session: Session = Depends(get_session)):
+def update_player(player_id: int, player_update: PlayerUpdate, session: Session = Depends(get_session)):
     """
     Update a player by ID.
     """
     db_player = session.get(Player, player_id)
     if not db_player:
         raise HTTPException(status_code=404, detail="Player not found")
-    player_data = player.dict(exclude_unset=True)
+    
+    # Update only the fields that are provided in the update request
+    player_data = player_update.model_dump(exclude_unset=True)
     for key, value in player_data.items():
         setattr(db_player, key, value)
+    
+    session.add(db_player)
     session.commit()
     session.refresh(db_player)
     return db_player

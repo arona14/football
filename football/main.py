@@ -5,16 +5,19 @@ from football.players.routes import player_router
 from football.teams.routes import team_router
 from football.leagues.routes import league_router
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
 
 
-
-app = FastAPI(debug=True)
-
-@app.on_event("startup")
-def on_startup():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     create_db_and_tables()
     print("Database and tables created.")
+    yield
+    print("Lifespan ended.")
+
+app = FastAPI(debug=True, lifespan=lifespan)
+
 
 app.add_middleware(
     CORSMiddleware,

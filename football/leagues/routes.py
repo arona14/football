@@ -50,19 +50,23 @@ def create_league(league: LeagueCreate, session: Session = Depends(get_session))
 
 
 @league_router.put("/leagues/{league_id}", response_model=LeagueRead)
-def update_league(league_id: int, league: LeagueUpdate, session: Session = Depends(get_session)):
+def update_league(league_id: int, league_update: LeagueUpdate, session: Session = Depends(get_session)):
     """
     Update a league by ID.
     """
     db_league = session.get(League, league_id)
     if not db_league:
         raise HTTPException(status_code=404, detail="League not found")
-    league.id = league_id
-    session.merge(league)
+    
+    # Update only the fields that are provided in the update request
+    league_data = league_update.model_dump(exclude_unset=True)
+    for key, value in league_data.items():
+        setattr(db_league, key, value)
+    
+    session.add(db_league)
     session.commit()
-    session.refresh(league)
-    return league
-
+    session.refresh(db_league)
+    return db_league
 
 @league_router.delete("/leagues/{league_id}")
 def delete_league(league_id: int, session: Session = Depends(get_session)):
